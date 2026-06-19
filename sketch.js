@@ -17,7 +17,10 @@ let preX, preY;
 
 function preload() {
   bg = loadImage("./data/sea.jpg"); 
-  sound = loadSound("./data/wave.mp3"); // p5.sound 라이브러리 사용
+  
+  // 1. 모바일/PC 보안 락을 가장 안정적으로 뚫는 브라우저 내장 Audio 객체 사용
+  sound = new Audio("./data/wave.mp3"); 
+  sound.loop = true; // 무한 반복 켜기
   
   for (let i = 0; i < starNum; i++) {
     starImg[i] = loadImage("./data/star" + i + ".png");
@@ -38,41 +41,34 @@ function setup() {
   tint(255, 10);
 }
 
-// ⭐ [PC용 잠금해제] p5.sound 문법에 맞게 완전 수정
+// ⭐ [PC/모바일 공통 오디오 활성화 장치]
+// 사용자가 화면을 클릭하거나 터치하는 '최초의 순간'에 소리를 켭니다.
+function startAudio() {
+  // 이미 소리가 재생 중(playing)이라면 중복 실행하지 않고 그냥 통과 (소리 겹침 차단)
+  if (sound && sound.paused) {
+    sound.play()
+      .then(() => console.log("오디오 재생 시작!"))
+      .catch(e => {
+        // 모바일 사파리 등 까다로운 환경 우회용 음소거 트릭
+        sound.muted = true;
+        sound.play().then(() => { sound.muted = false; });
+      });
+  }
+}
+
+// PC에서 마우스를 누를 때 실행
 function mousePressed() {
-  // 오디오 엔진이 잠겨있다면 깨웁니다.
-  if (getAudioContext().state !== 'running') {
-    getAudioContext().resume();
-  }
-  
-  // 재생 중이 아닐 때만 루프 재생을 시작하여 소리 겹침을 방지합니다.
-  if (sound && !sound.isPlaying()) {
-    sound.loop();
-    console.log("PC 오디오 재생 시작");
-  }
+  startAudio();
 }
 
-// ⭐ [모바일용 잠금해제] p5.sound 문법에 맞게 완전 수정
+// 모바일에서 화면을 처음 터치할 때 실행
 function touchStarted() {
-  if (getAudioContext().state !== 'running') {
-    getAudioContext().resume();
-  }
-  
-  if (sound && !sound.isPlaying()) {
-    sound.loop();
-    console.log("모바일 오디오 재생 시작");
-  }
+  startAudio();
 }
 
-// ⭐ 마우스 드래그나 터치 이동 시에도 안전장치 유지
+// 화면을 드래그하거나 문지를 때 실행
 function touchMoved() {
-  if (getAudioContext().state !== 'running') {
-    getAudioContext().resume();
-  }
-
-  if (sound && !sound.isPlaying()) {
-    sound.loop();
-  }
+  startAudio();
 }
 
 function draw() {
