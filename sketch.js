@@ -38,30 +38,31 @@ function setup() {
   tint(255, 10);
 }
 
-/// 사용자가 화면에 손가락을 대는 "첫 순간"에 무조건 재생을 시작합니다.
+// 1. 손가락을 화면에 대는 순간
 function touchStarted() {
   if (sound) {
-    // 플레이 중이 아니라면 강제로 play()를 실행합니다.
-    sound.play()
-      .then(() => {
-        console.log("오디오 강제 재생 성공!");
-      })
-      .catch(e => {
-        // 에러가 난다면 유저 인터랙션이 아직 부족하다는 뜻이므로 
-        // 음소거로 풀었다가 다시 켜는 신호를 줍니다.
-        sound.muted = true;
-        sound.play().then(() => { sound.muted = false; });
-        console.log("오디오 재생 에러 우회 중:", e);
-      });
+    // ⭐ [핵심] 현재 사운드가 일시정지(paused) 상태일 때만 재생을 시작합니다.
+    // 이미 재생 중이라면 중복으로 play()를 호출하지 않아 소리가 겹치지 않습니다.
+    if (sound.paused) {
+      sound.play()
+        .then(() => console.log("파도 소리 재생 시작"))
+        .catch(e => {
+          // 모바일 브라우저의 첫 터치 제한을 풀기 위한 음소거 우회 코드
+          sound.muted = true;
+          sound.play().then(() => { sound.muted = false; });
+        });
+    }
   }
 }
 
-// 손가락을 움직일 때도 사운드가 멈춰있다면 다시 깨웁니다.
+// 2. 손가락을 화면에서 문지를 때
 function touchMoved() {
+  // ⭐ 여기도 마찬가지로 소리가 '정지 상태일 때만' 재생 명령을 내립니다.
   if (sound && sound.paused) {
     sound.play().catch(e => console.log(e));
   }
 }
+
 
 function draw() {
   curImg = get();
