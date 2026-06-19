@@ -1,8 +1,32 @@
 html, body {
   margin: 0;
   padding: 0;
+  width: 100%;
+  /* 현재 세로 크기 100%에 +100px 하신 것 때문에 스크롤이 생길 수 있으니 100%로 고정 */
+  height: 100%; 
+  
+  /* 화면이 절대 넘치지 않도록 잠금 */
+  overflow: hidden; 
+  
+  /* ⭐ [핵심] 당겨서 새로고침 및 아이폰 바운스 효과를 완전히 차단 */
+  overscroll-behavior: none; 
+  overscroll-behavior-y: none;
+  
+  /* ⭐ [핵심] 브라우저 기본 터치 액션(스크롤, 확대)을 차단하고 p5.js가 터치를 온전히 쓰도록 함 */
+  touch-action: none; 
+  
+  position: fixed; /* relative나 flex 대신 fixed로 화면에 박아버립니다 */
+  top: 0;
+  left: 0;
 }
 
 canvas {
   display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100% !important;
+  /* p5.js setup에서 강제로 100px 늘린 것과 충돌하지 않도록 height도 100% 잠금 */
+  height: 100% !important; 
+  touch-action: none;
 }

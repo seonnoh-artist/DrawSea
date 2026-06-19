@@ -26,7 +26,7 @@ function preload() {
 }
 
 function setup() {
-  pixelDensity(1); // 픽셀 수식이 정확하게 해준다.
+  pixelDensity(1); // 기기 픽셀 밀도 고정(전체화면 픽셀 매칭 해결용)
 
   createCanvas(windowWidth, windowHeight);
   wave_up = height / 3;
