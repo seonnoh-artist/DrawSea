@@ -49,6 +49,26 @@ function touchMoved() {
   }
 }
 
+// 1. 유저가 화면을 '터치하기 시작하는 순간' 오디오 잠금을 해제합니다.
+function touchStarted() {
+  // 브라우저의 오디오 엔진 상태가 꺼져있다면(suspended) 다시 깨웁니다.
+  if (getAudioContext().state !== 'running') {
+    getAudioContext().resume().then(() => {
+      console.log('오디오 재생 엔진이 성공적으로 활성화되었습니다.');
+    });
+  }
+}
+
+// 2. 기존의 touchMoved 또는 터치 인터랙션에서 사운드를 재생합니다.
+function touchMoved() {
+  // 오디오 엔진이 켜진 상태에서만 사운드 재생 시도
+  if (getAudioContext().state === 'running') {
+    if (sound && !sound.isPlaying()) {
+      sound.loop(); // 또는 sound.play();
+    }
+  }
+}
+
 function draw() {
   curImg = get();
   curImg.loadPixels();
