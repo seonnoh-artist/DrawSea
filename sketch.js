@@ -15,13 +15,13 @@ let tint_count = 0;
 let chk = false;
 let preX, preY; 
 
+// ⭐ 페이드아웃 제어를 위한 타이머 변수
+let fadeInterval = null;
+
 function preload() {
   bg = loadImage("./data/sea.jpg"); 
   
-  // 1. 모바일/PC 보안 락을 가장 안정적으로 뚫는 브라우저 내장 Audio 객체 사용
   sound = new Audio("./data/wave.mp3"); 
-  sound.loop = true; // 무한 반복 켜기
-  
   for (let i = 0; i < starNum; i++) {
     starImg[i] = loadImage("./data/star" + i + ".png");
   }
@@ -41,34 +41,65 @@ function setup() {
   tint(255, 10);
 }
 
-// ⭐ [PC/모바일 공통 오디오 활성화 장치]
-// 사용자가 화면을 클릭하거나 터치하는 '최초의 순간'에 소리를 켭니다.
-function startAudio() {
-  // 이미 소리가 재생 중(playing)이라면 중복 실행하지 않고 그냥 통과 (소리 겹침 차단)
-  if (sound && sound.paused) {
-    sound.play()
-      .then(() => console.log("오디오 재생 시작!"))
-      .catch(e => {
-        // 모바일 사파리 등 까다로운 환경 우회용 음소거 트릭
-        sound.muted = true;
-        sound.play().then(() => { sound.muted = false; });
-      });
+// 🎵 [소리 켜기] 누르고 있을 때 실행
+function playAudio() {
+  if (sound) {
+    // 만약 페이드아웃이 진행 중이었다면 타이머를 취소합니다.
+    if (fadeInterval) {
+      clearInterval(fadeInterval);
+      fadeInterval = null;
+    }
+    
+    // 소리가 멈춰있을 때만 처음부터 재생
+    if (sound.paused) {
+      sound.volume = 1.0; // 볼륨을 다시 최대(100%)로 설정
+      sound.currentTime = 0; 
+      sound.play().catch(e => console.log(e));
+    }
   }
 }
 
-// PC에서 마우스를 누를 때 실행
+// 🔇 [소리 끄기] 손을 떼면 소리가 서서히 줄어들게 하는 함수 (페이드아웃)
+function stopAudio() {
+  if (sound && !sound.paused) {
+    // 기존에 돌고 있던 페이드 타이머가 있다면 중복 방지를 위해 제거
+    if (fadeInterval) clearInterval(fadeInterval);
+
+    // 0.05초(50ms)마다 볼륨을 서서히 줄이는 타이머 가동
+    fadeInterval = setInterval(() => {
+      if (sound.volume > 0.05) {
+        sound.volume -= 0.05; // 볼륨을 5%씩 계속 줄임
+      } else {
+        // 볼륨이 거의 0에 도달하면 완전히 일시정지하고 타이머 종료
+        sound.pause();
+        sound.volume = 1.0; // 다음 재생을 위해 볼륨 원상복구
+        clearInterval(fadeInterval);
+        fadeInterval = null;
+      }
+    }, 50); // 50밀리초 주기
+  }
+}
+
+// --- PC 마우스 인터랙션 제어 ---
 function mousePressed() {
-  startAudio();
+  playAudio();
 }
 
-// 모바일에서 화면을 처음 터치할 때 실행
+function mouseReleased() {
+  stopAudio(); 
+}
+
+// --- 모바일 터치 인터랙션 제어 ---
 function touchStarted() {
-  startAudio();
+  playAudio();
 }
 
-// 화면을 드래그하거나 문지를 때 실행
 function touchMoved() {
-  startAudio();
+  playAudio(); 
+}
+
+function touchEnded() {
+  stopAudio(); 
 }
 
 function draw() {
