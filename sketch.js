@@ -17,7 +17,7 @@ let preX, preY;
 
 function preload() {
   bg = loadImage("./data/sea.jpg"); 
-  sound = loadSound("./data/wave.mp3"); 
+  sound = loadSound("./data/wave.mp3"); // p5.sound 라이브러리 사용
   
   for (let i = 0; i < starNum; i++) {
     starImg[i] = loadImage("./data/star" + i + ".png");
@@ -38,31 +38,42 @@ function setup() {
   tint(255, 10);
 }
 
-// 1. 손가락을 화면에 대는 순간
+// ⭐ [PC용 잠금해제] p5.sound 문법에 맞게 완전 수정
+function mousePressed() {
+  // 오디오 엔진이 잠겨있다면 깨웁니다.
+  if (getAudioContext().state !== 'running') {
+    getAudioContext().resume();
+  }
+  
+  // 재생 중이 아닐 때만 루프 재생을 시작하여 소리 겹침을 방지합니다.
+  if (sound && !sound.isPlaying()) {
+    sound.loop();
+    console.log("PC 오디오 재생 시작");
+  }
+}
+
+// ⭐ [모바일용 잠금해제] p5.sound 문법에 맞게 완전 수정
 function touchStarted() {
-  if (sound) {
-    // ⭐ [핵심] 현재 사운드가 일시정지(paused) 상태일 때만 재생을 시작합니다.
-    // 이미 재생 중이라면 중복으로 play()를 호출하지 않아 소리가 겹치지 않습니다.
-    if (sound.paused) {
-      sound.play()
-        .then(() => console.log("파도 소리 재생 시작"))
-        .catch(e => {
-          // 모바일 브라우저의 첫 터치 제한을 풀기 위한 음소거 우회 코드
-          sound.muted = true;
-          sound.play().then(() => { sound.muted = false; });
-        });
-    }
+  if (getAudioContext().state !== 'running') {
+    getAudioContext().resume();
+  }
+  
+  if (sound && !sound.isPlaying()) {
+    sound.loop();
+    console.log("모바일 오디오 재생 시작");
   }
 }
 
-// 2. 손가락을 화면에서 문지를 때
+// ⭐ 마우스 드래그나 터치 이동 시에도 안전장치 유지
 function touchMoved() {
-  // ⭐ 여기도 마찬가지로 소리가 '정지 상태일 때만' 재생 명령을 내립니다.
-  if (sound && sound.paused) {
-    sound.play().catch(e => console.log(e));
+  if (getAudioContext().state !== 'running') {
+    getAudioContext().resume();
+  }
+
+  if (sound && !sound.isPlaying()) {
+    sound.loop();
   }
 }
-
 
 function draw() {
   curImg = get();
