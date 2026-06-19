@@ -38,28 +38,28 @@ function setup() {
   tint(255, 10);
 }
 
-// ⭐ [수정] 모바일 사운드 잠금을 완전히 해제하는 핵심 터치 함수
+/// 사용자가 화면에 손가락을 대는 "첫 순간"에 무조건 재생을 시작합니다.
 function touchStarted() {
-  // 1. 오디오 컨텍스트 상태가 running이 아니라면 강제로 활성화
-  if (getAudioContext().state !== 'running') {
-    getAudioContext().resume();
-  }
-
-  // 2. 모바일 브라우저에게 "유저가 직접 소리를 켰음"을 증명하기 위해 
-  // 터치하자마자 아주 잠깐 재생했다가 끄거나 루프를 먹여야 뚫립니다.
-  if (sound && !sound.isPlaying()) {
-    sound.loop(); 
+  if (sound) {
+    // 플레이 중이 아니라면 강제로 play()를 실행합니다.
+    sound.play()
+      .then(() => {
+        console.log("오디오 강제 재생 성공!");
+      })
+      .catch(e => {
+        // 에러가 난다면 유저 인터랙션이 아직 부족하다는 뜻이므로 
+        // 음소거로 풀었다가 다시 켜는 신호를 줍니다.
+        sound.muted = true;
+        sound.play().then(() => { sound.muted = false; });
+        console.log("오디오 재생 에러 우회 중:", e);
+      });
   }
 }
 
-// ⭐ [수정] 중복되던 터치 무브 함수를 하나로 통합
+// 손가락을 움직일 때도 사운드가 멈춰있다면 다시 깨웁니다.
 function touchMoved() {
-  if (getAudioContext().state !== 'running') {
-    getAudioContext().resume();
-  }
-
-  if (sound && !sound.isPlaying()) {
-    sound.loop();
+  if (sound && sound.paused) {
+    sound.play().catch(e => console.log(e));
   }
 }
 
