@@ -95,11 +95,13 @@ function touchStarted() {
 }
 
 function touchMoved() {
-  playAudio(); 
+  //playAudio(); 
+  return false;
 }
 
 function touchEnded() {
   stopAudio(); 
+  return false;
 }
 
 function draw() {
